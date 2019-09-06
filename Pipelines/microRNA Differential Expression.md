@@ -50,7 +50,7 @@ counts_isomirs_add <- counts_isomirs_add[rowSums(x == TRUE) >= 5,]
 
 ## Approach 1: One-way analysis of variance
 
-- Raw read counts were first median-normalized to adjust for the effect of library sizes and read count distributions *(Anders & Huber 2010)*.
+- Raw read counts were first median-normalized to adjust for the effect of library sizes and read count distributions *(Anders & Huber 2010)*. Normalized counts are converted to the log2 scale, using log2 (x + 1) for conversion.
 
 ```
 library(DESeq2)
@@ -65,7 +65,7 @@ normalized_counts_log <- log2(normalized_counts + 1)
 - To check that this type of normalization actually changed the variance of your data, we can plot the relative log distribution (rle), before and after normalization.
 
 ```
-ounts_isomirs_add_log <- log2(counts_isomirs_add  + 1)
+counts_isomirs_add_log <- log2(counts_isomirs_add  + 1)
 
 mn_bef  <- apply(counts_isomirs_add_log, 1, median)
 rle <- data.frame(sweep(counts_isomirs_add_log, MARGIN=1, STATS=mn_bef , FUN='-'))
@@ -78,12 +78,35 @@ boxplot(rle, xlab="Samples",ylab="RLE After Normalization")
 
 This is an example of these plots.
 
+![Deseq2_normalization](https://user-images.githubusercontent.com/53570955/64458226-c2af1e00-d0c2-11e9-9a2f-bf194f16132e.jpg)
 
+- Use the function *anova* to carry out an analysis of variance for each miRNA data.
 
-- Normalized counts were converted to the log2 scale, using log2 (x + 1) for the conversion.
-- An analysis of variance (ANOVA) was carried out for normalized reads, the variables modeled were sampling day and miRNA abundance.
-- The Benjamini-Hochberg procedure (Benjamini & Hochberg, 1995)  was used to control the false discovery rate (FDR) based on the p-values obtained from the ANOVA analysis. Genes having p-values with an FDR threshold < 0.05 were designated as differentially expressed.
+```
+data_in <- t(normalized_counts_log)
+data_in <- cbind(time = de,data_in)
 
+p_val_list <- character(0)
+for (gene in rownames(normalized_counts_log)){
+  data_to_aov <- data_in[,c("condition",gene)]
+  colnames(data_to_aov) <- c("condition","miRNA")
+  fmla <- as.formula("miRNA ~ condition")
+  aov_fmla <- aov(fmla, data = data_to_aov)
+  p_val  <- summary(aov_fmla)[[1]][["Pr(>F)"]][1]
+  p_val_list <- as.numeric(append(p_val_list,p_val))
+}
+```
 
+- The Benjamini-Hochberg procedure (Benjamini & Hochberg, 1995) is used to control the false discovery rate (FDR) based on the p-values obtained from the ANOVA analysis. 
 
+```
+pval_adjust <- p.adjust(p_val_list, method = "BH")
+data_out_aov <- data.frame(cbind(normalized_counts_log,'p-val'=p_val_list, 'adjusted p-val' = pval_adjust))
+```
+
+- microRNAs having p-values with an FDR threshold < 0.05 are designated as differentially expressed.
+
+```
+DE_miRNA <- data_out_aov[data_out_aov$adjusted.p.val < 0.05,]
+```
 
