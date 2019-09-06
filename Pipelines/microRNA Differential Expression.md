@@ -6,7 +6,7 @@ This pipeline explains how to find differentially expressed microRNAs among diff
 
 ```for file in fastq/*.fastq; do base=${file##*/}; cutadapt -a TGGAATTCTCGGGTGCCAAGG -m 18 -M 28 --discard-untrimmed -o adapter/${base%.*}.filtered.fastq $file; done```
 
-2. Dowload miRBase [*hairpin*](ftp://mirbase.org/pub/mirbase/CURRENT/hairpin.fa.zip) and [*miRNA*](ftp://mirbase.org/pub/mirbase/CURRENT/miRNA.str.zip) files. Create a folder ```DB/``` and store files there.
+2. Dowload miRBase [*hairpin.fa*](http://www.mirbase.org/ftp.shtml) and [*miRNA.str*](http://www.mirbase.org/ftp.shtml) files. The last one has to be downloaded from the FTP site. Create a folder ```DB/``` and store files there.
 
 2. We use the [miraligner](https://code.google.com/p/seqbuster/wiki/miraligner) tool to map reads to microRNAs from Arabidopsis. The following script allows up to one mismatch during mapping.
 
