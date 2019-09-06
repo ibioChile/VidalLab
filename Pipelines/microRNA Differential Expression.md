@@ -28,7 +28,7 @@ I recommend to run this script on a server, since it requires a long time of pro
 
 ```counts_isomirs <- read.table("miRNA_counts.tsv", header=TRUE, sep="\t")```
 
-7. Counts from 5’ and 3’ strands of each miRNA should be added.
+7. Counts from 5’ and 3’ strands of each miRNA are added.
 
 ```
 miRNA <- row.names(counts_isomirs)
@@ -41,7 +41,7 @@ rownames(counts_isomirs_add) <- counts_isomirs_add[,1]
 counts_isomirs_add <- counts_isomirs_add[,-1]
 ```
 
-7. Filter counts: Only miRNA with a minimum of 5 counts in at least 25% of samples (5 samples in this case) are considered for the DE analysis.
+7. Filter counts: Only miRNA with a minimum of 5 counts in at least 25% of samples (5 in this case) are considered for DE analysis.
 
 ```
 x <- counts_isomirs_add >= 5
@@ -50,7 +50,36 @@ counts_isomirs_add <- counts_isomirs_add[rowSums(x == TRUE) >= 5,]
 
 ## Approach 1: One-way analysis of variance
 
-- Raw read counts were first median-normalized to adjust for the effect of library sizes and read count distributions (Anders & Huber 2010). 
+- Raw read counts were first median-normalized to adjust for the effect of library sizes and read count distributions *(Anders & Huber 2010)*.
+
+```
+library(DESeq2)
+de <- data.frame(row.names=c("f1","f2","f3","f4","f5","f6","f7","f8","f9","f10","f11","f12","f13","f14","f15","f16","f17","f18"), condition = c("d5", "d5", "d5","d9","d9","d9","d13","d13","d13","d17","d17","d17","d21","d21","d21","d25","d25","d25"))
+dds = DESeqDataSetFromMatrix(counts_isomirs_add , de , design = ~ condition)
+dds <- estimateSizeFactors(dds)
+sizeFactors(dds)
+normalized_counts <- counts(dds, normalized=TRUE)
+normalized_counts_log <- log2(normalized_counts + 1)
+```
+
+- To check that this type of normalization actually changed the variance of your data, we can plot the relative log distribution (rle), before and after normalization.
+
+```
+ounts_isomirs_add_log <- log2(counts_isomirs_add  + 1)
+
+mn_bef  <- apply(counts_isomirs_add_log, 1, median)
+rle <- data.frame(sweep(counts_isomirs_add_log, MARGIN=1, STATS=mn_bef , FUN='-'))
+boxplot(rle, xlab="Samples",ylab="RLE Before Normalization")
+
+mn_aft  <- apply(normalized_counts_log, 1, median)
+rle <- data.frame(sweep(normalized_counts_log, MARGIN=1, STATS=mn_aft, FUN='-'))
+boxplot(rle, xlab="Samples",ylab="RLE After Normalization")
+```
+
+This is an example of these plots.
+
+
+
 - Normalized counts were converted to the log2 scale, using log2 (x + 1) for the conversion.
 - An analysis of variance (ANOVA) was carried out for normalized reads, the variables modeled were sampling day and miRNA abundance.
 - The Benjamini-Hochberg procedure (Benjamini & Hochberg, 1995)  was used to control the false discovery rate (FDR) based on the p-values obtained from the ANOVA analysis. Genes having p-values with an FDR threshold < 0.05 were designated as differentially expressed.
