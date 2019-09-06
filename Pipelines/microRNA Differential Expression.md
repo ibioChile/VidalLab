@@ -1,6 +1,6 @@
 # microRNA Differential Expression
 
-This pipeline explains how to find differentially expressed microRNAs among different conditions, including the processing of small RNA libraries. In this case, we will analyze an experiment where samples from *Arabidopsis thaliana* were collected at 6 different days (3 replicates each day). We will explain 2 different methods for temporal DE analysis. 
+This pipeline explains how to find differentially expressed microRNAs among different conditions, including the processing of small RNA libraries. In this case, we will analyze an experiment where samples from *Arabidopsis thaliana* were collected at 6 different days (3 replicates each day). 
 
 1. Remove adapters from microRNA libraries using cutadapt. Reads with length <18 bp and >28 bp are discarded. 
 
@@ -20,16 +20,40 @@ This pipeline explains how to find differentially expressed microRNAs among diff
 
 ```Rscript isoCounts.R```
 
-I recommend to run this script on a server, since it requires a long time of processing.
+I recommend to run this script on a server, since it requires a long time of processing. The output of this script can be used for any DE analysis.
 
-The output of this script can be used for any DE analysis.
+**We will explain 2 different methods for temporal DE analysis. The next steps will be run on RStudio** 
 
-6. Counts from 5’ and 3’ strands of each miRNA should be added.
+6. Import counts file to R. 
 
-7. Filter counts: Only miRNA with a minimum of 10 counts in at least 3 samples are considered for the DE analysis.
+```counts_isomirs <- read.table("miRNA_counts.tsv", header=TRUE, sep="\t")```
+
+7. Counts from 5’ and 3’ strands of each miRNA should be added.
+
+```
+miRNA <- row.names(counts_isomirs)
+miRNA <- gsub("-3p","",miRNA)
+miRNA <- gsub("-5p","",miRNA)
+
+counts_isomirs_add <- cbind("miRNA" = miRNA, counts_isomirs)
+counts_isomirs_add <- as.data.frame(counts_isomirs_add %>% group_by(miRNA) %>% summarise_each(sum))
+rownames(counts_isomirs_add) <- counts_isomirs_add[,1]
+counts_isomirs_add <- counts_isomirs_add[,-1]
+```
+
+7. Filter counts: Only miRNA with a minimum of 5 counts in at least 25% of samples (5 samples in this case) are considered for the DE analysis.
+
+```
+x <- counts_isomirs_add >= 5
+counts_isomirs_add <- counts_isomirs_add[rowSums(x == TRUE) >= 5,]
+```
 
 ## Approach 1: One-way analysis of variance
 
+- Raw read counts were first median-normalized to adjust for the effect of library sizes and read count distributions (Anders & Huber 2010). 
+- Normalized counts were converted to the log2 scale, using log2 (x + 1) for the conversion.
+- An analysis of variance (ANOVA) was carried out for normalized reads, the variables modeled were sampling day and miRNA abundance.
+- The Benjamini-Hochberg procedure (Benjamini & Hochberg, 1995)  was used to control the false discovery rate (FDR) based on the p-values obtained from the ANOVA analysis. Genes having p-values with an FDR threshold < 0.05 were designated as differentially expressed.
 
 
 
