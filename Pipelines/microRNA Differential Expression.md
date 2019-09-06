@@ -8,18 +8,29 @@ This pipeline explains how to find differentially expressed microRNAs among diff
 
 2. Dowload miRBase [*hairpin.fa*](http://www.mirbase.org/ftp.shtml) and [*miRNA.str*](http://www.mirbase.org/ftp.shtml) files. The last one has to be downloaded from the FTP site. Create a folder ```DB/``` and store files there.
 
-2. We use the [miraligner](https://code.google.com/p/seqbuster/wiki/miraligner) tool to map reads to microRNAs from Arabidopsis. The following script allows up to one mismatch during mapping.
+3. We use the [miraligner](https://code.google.com/p/seqbuster/wiki/miraligner) tool to map reads to microRNAs from Arabidopsis. The following script allows up to one mismatch during mapping.
 
 ```for file in adapter/*.fastq; do base=${file##*/}; java -jar miraligner.jar -sub 1 -trim 3 -add 3 -s ath -i $file -db DB/ -o miraligner_out/${base%.*}; done```
 
-3. Format *.mirna* files to use file as input for next step. This script fixes 'Freq' column, changing 0 to 1 values.
+4. Format *.mirna* files to use file as input for next step. This script fixes 'Freq' column, changing 0 to 1 values.
 
 ```for file in /miraligner_out/*.mirna; do base=${file##*/}; awk -F$'\t' 'BEGIN {OFS = FS} {$3="1";print}' $file > /miraligner_fixed/${base%.*}.fixed.mirna; sed -i '' -e 's/name\t1/name\tfreq/g' /miraligner_fixed/${base%.*}.fixed.mirna; done```
 
-3. A counts table can be generated using the [*isoCounts.R*](https://github.com/ibioChile/VidalLab/blob/master/Scripts/isoCounts.R) script, which takes the formatted *.mirna* files as input. This script uses the [isoCounts](http://lpantano.github.io/isomiRs/reference/isoCounts.html) function of the [isomiRs](https://bioconductor.org/packages/release/bioc/html/isomiRs.html) package.
+5. A counts table can be generated using the [*isoCounts.R*](https://github.com/ibioChile/VidalLab/blob/master/Scripts/isoCounts.R) script, which takes the formatted *.mirna* files as input. This script uses the [isoCounts](http://lpantano.github.io/isomiRs/reference/isoCounts.html) function from [isomiRs](https://bioconductor.org/packages/release/bioc/html/isomiRs.html) package.
 
 ```Rscript isoCounts.R```
 
-*I recommend to run this script on a server, since it requires a long time of processing*
+I recommend to run this script on a server, since it requires a long time of processing.
+
+The output of this script can be used for any DE analysis.
+
+6. Counts from 5’ and 3’ strands of each miRNA should be added.
+
+7. Filter counts: Only miRNA with a minimum of 10 counts in at least 3 samples are considered for the DE analysis.
+
+## Approach 1: One-way analysis of variance
+
+
+
 
 
