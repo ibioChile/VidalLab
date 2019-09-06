@@ -41,7 +41,7 @@ rownames(counts_isomirs_add) <- counts_isomirs_add[,1]
 counts_isomirs_add <- counts_isomirs_add[,-1]
 ```
 
-7. Filter counts: Only miRNA with a minimum of 5 counts in at least 25% of samples (5 in this case) are considered for DE analysis.
+8. Filter counts: Only miRNA with a minimum of 5 counts in at least 25% of samples (5 in this case) are considered for DE analysis.
 
 ```
 x <- counts_isomirs_add >= 5
@@ -110,3 +110,54 @@ data_out_aov <- data.frame(cbind(normalized_counts_log,'p-val'=p_val_list, 'adju
 DE_miRNA <- data_out_aov[data_out_aov$adjusted.p.val < 0.05,]
 ```
 
+## Approach 2: RNentropy
+
+RNentropy (*Zambelli et al. 2018*): identification of genes showing a significant variation of expression across all conditions studied. The samples, corresponding to different conditions sequenced in any number of replicates, are compared by taking into account the global gene expression level and at the same time the impact of biological variation across replicates. 
+
+- Normalized counts are analyzed using the RN_calc tool of the RNentropy R package. Selection of DE miRNA is done with RN_select using the  Benjamini-Hochberg procedure (Benjamini & Hochberg, 1995)  to control the false discovery rate (FDR). Thresholds for global and local p-values are set to 0.01 (default). 
+
+```
+cond <- rbind(matrix(data=c(1,0,0,0,0,0),nrow=3,ncol=6,byrow = TRUE),
+              matrix(data=c(0,1,0,0,0,0),nrow=3,ncol=6,byrow = TRUE),
+              matrix(data=c(0,0,1,0,0,0),nrow=3,ncol=6,byrow = TRUE),
+              matrix(data=c(0,0,0,1,0,0),nrow=3,ncol=6,byrow = TRUE),
+              matrix(data=c(0,0,0,0,1,0),nrow=3,ncol=6,byrow = TRUE),
+              matrix(data=c(0,0,0,0,0,1),nrow=3,ncol=6,byrow = TRUE))
+cond <- data.frame(cond, row.names=c("f1","f2","f3","f4","f5","f6","f7","f8","f9","f10","f11","f12","f13","f14","f15","f16","f17","f18"))
+names(cond) <- c("d5","d9","d13","d17","d21","d25")
+
+RNent_results <- RN_calc(as.data.frame(normalized_counts), as.matrix(cond))
+RN_pmi(RNent_results)
+D3_results_De <- RN_select(RNent_results, method = "BH")
+DE_results <- D3_results_De$selected
+```
+
+- A post-processing filter was applied to determine DE miRNA. Only samples with an estimated expression value (non NA) in at least 5 of the 6 days analyzed were considered as DE over the time course. 
+
+```
+DE_results_filtered <- DE_results[rowSds(as.matrix(DE_results[3:8]),na.rm=TRUE) != 0,]
+DE_results_filtered2 <- DE_results_filtered[rowSums(is.na(DE_results_filtered[3:8])) < 2,]
+
+#Extract log data from DE miRNA
+DE_miRNA <- row.names(DE_results_filtered2)
+normalized_counts_log <- log2(normalized_counts + 1)
+DE_miRNA_data <- normalized_counts_log[rownames(normalized_counts_log) %in% DE_miRNA,]
+```
+
+- Also, microRNA with a mean delta log2 among the maximum and minimum expression over time < 1 were discarded.
+
+```
+DE_miRNA_data_cond <- data.frame(t(DE_miRNA_data[,1:18]))
+DE_miRNA_data_cond <- cbind('condition' = de$condition, DE_miRNA_data_cond)
+mean_exp <- data.frame(DE_miRNA_data_cond %>% group_by(condition) %>% summarise_each(mean))
+mean_exp <- mean_exp[,-1]
+min_DE_miRNA_data <- apply(mean_exp, 2, FUN=min)
+max_DE_miRNA_data <- apply(mean_exp, 2, FUN=max)
+deltalog <- as.numeric(max_DE_miRNA_data) - as.numeric(min_DE_miRNA_data)
+
+DE_miRNA_data2 <- DE_miRNA_data[deltalog > 1,]
+DE_results_filtered3 <- DE_results_filtered2[row.names(DE_results_filtered2) %in% row.names(DE_miRNA_data2),]
+```
+
+*DE_miRNA_data2* : RNentropy data of under and over expressed microRNAs.
+*DE_results_filtered3* : Expression of DE microRNAs.
