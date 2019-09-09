@@ -28,24 +28,11 @@ I recommend to run this script on a server, since it requires a long time of pro
 
 ```counts_isomirs <- read.table("miRNA_counts.tsv", header=TRUE, sep="\t")```
 
-7. Counts from 5’ and 3’ strands of each miRNA are added.
+7. Filter counts: Only miRNA with a minimum of 5 counts in at least 25% of samples (5 in this case) are considered for DE analysis.
 
 ```
-miRNA <- row.names(counts_isomirs)
-miRNA <- gsub("-3p","",miRNA)
-miRNA <- gsub("-5p","",miRNA)
-
-counts_isomirs_add <- cbind("miRNA" = miRNA, counts_isomirs)
-counts_isomirs_add <- as.data.frame(counts_isomirs_add %>% group_by(miRNA) %>% summarise_each(sum))
-rownames(counts_isomirs_add) <- counts_isomirs_add[,1]
-counts_isomirs_add <- counts_isomirs_add[,-1]
-```
-
-8. Filter counts: Only miRNA with a minimum of 5 counts in at least 25% of samples (5 in this case) are considered for DE analysis.
-
-```
-x <- counts_isomirs_add >= 5
-counts_isomirs_add <- counts_isomirs_add[rowSums(x == TRUE) >= 5,]
+x <- counts_isomirs >= 5
+counts_isomirs_add <- counts_isomirs[rowSums(x == TRUE) >= 5,]
 ```
 
 ## Approach 1: One-way analysis of variance
