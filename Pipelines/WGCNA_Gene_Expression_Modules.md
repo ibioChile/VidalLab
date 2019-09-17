@@ -147,7 +147,7 @@ dev.off()
 ```
 The histogram generated shows how different modules are clustered and draws a line for merging.
 
-[clustering_modules-DE.pdf](https://github.com/ibioChile/VidalLab/files/3622359/clustering_modules-DE.pdf)
+![clustering_modules-DE](https://user-images.githubusercontent.com/53570955/65058585-dff9ad00-d94a-11e9-878d-9021a726b42a.jpg)
 
 ```
 # Call an automatic merging function
@@ -165,7 +165,7 @@ plotDendroAndColors(geneTree, cbind(dynamicColors, mergedColors),
 
 This gene dendogram shows how modules are clustered based on distance:
 
-[geneDendro-DE.pdf](https://github.com/ibioChile/VidalLab/files/3622356/geneDendro-DE.pdf)
+![geneDendro-DE](https://user-images.githubusercontent.com/53570955/65058552-d4a68180-d94a-11e9-91ae-d7c622bae074.jpg)
 
 ```
 # Rename to moduleColors
@@ -201,6 +201,6 @@ pheatmap(t(merged_MEs_sorted[,2:4]), cluster_rows = FALSE, main = "Eigengene exp
          cellheight = 30,cellwidth = 30)
 ```
 
-[modules_expression_DE.pdf](https://github.com/ibioChile/VidalLab/files/3622363/modules_expression_DE.pdf)
+![modules_expression_DE](https://user-images.githubusercontent.com/53570955/65058536-c9535600-d94a-11e9-8864-5b40956b7812.jpg)
 
 
