@@ -101,5 +101,106 @@ text(sft$fitIndices[,1], sft$fitIndices[,5], labels=powers, cex=cex1,col="red")
 In this case, we picked a soft thresholding value of 65 because it allows an r2 close to 0.8 (it is a local peak for the r2) and the mean connectivity is still above 0.
 
 
+7. Modules generation. 
+
+```
+# Calculate adjacencies
+softPower = 65
+adjacency = adjacency(datExpr0, power = softPower,type = "signed")
+# Turn adjacency into topological overlap
+TOM = TOMsimilarity(adjacency);
+dissTOM = 1-TOM
+
+# Call the hierarchical clustering function
+geneTree = hclust(as.dist(dissTOM), method = "average");
+
+# Set the minimum module size:
+minModuleSize = 20;
+# Module identification using dynamic tree cut:
+dynamicMods = cutreeDynamic(dendro = geneTree, distM = dissTOM,
+                            deepSplit = 2, pamRespectsDendro = FALSE,
+                            minClusterSize = minModuleSize);
+table(dynamicMods)
+
+# Convert numeric lables into colors
+dynamicColors = labels2colors(dynamicMods)
+table(dynamicColors)
+
+# Calculate eigengenes
+MEList = moduleEigengenes(datExpr0, colors = dynamicColors)
+MEs = MEList$eigengenes
+# Calculate dissimilarity of module eigengenes
+MEDiss = 1-cor(MEs);
+# Cluster module eigengenes
+METree = hclust(as.dist(MEDiss), method = "average");
+```
+
+8. Module merging
+
+```
+#We choose a height cut of 0.20 to merge modules (modules with a correlation > 0.8 are merged).
+MEDissThres = 0.20
+# Plot the cut line into the dendrogram
+plot(METree, main = "Clustering of module eigengenes", xlab = "", sub = "")
+abline(h=MEDissThres, col = "red")
+dev.off()
+```
+The histogram generated shows how different modules are clustered and draws a line for merging.
+
+[clustering_modules-DE.pdf](https://github.com/ibioChile/VidalLab/files/3622359/clustering_modules-DE.pdf)
+
+```
+# Call an automatic merging function
+merge = mergeCloseModules(datExpr0, dynamicColors, cutHeight = MEDissThres, verbose = 3)
+# The merged module colors
+mergedColors = merge$colors;
+# Eigengenes of the new merged modules:
+mergedMEs = merge$newMEs
+
+plotDendroAndColors(geneTree, cbind(dynamicColors, mergedColors),
+                    c("Dynamic Tree Cut", "Merged dynamic"),
+                    dendroLabels = FALSE, hang = 0.03,
+                    addGuide = TRUE, guideHang = 0.05)
+```
+
+This gene dendogram shows how modules are clustered based on distance:
+
+[geneDendro-DE.pdf](https://github.com/ibioChile/VidalLab/files/3622356/geneDendro-DE.pdf)
+
+```
+# Rename to moduleColors
+moduleColors = mergedColors
+# Construct numerical labels corresponding to the colors
+colorOrder = c("grey", standardColors(50));
+moduleLabels = match(moduleColors, colorOrder)-1;
+MEs = mergedMEs;
+```
+
+9. Plot modules gene expression, represented by the eigengenes, at the different conditions. 
+
+```
+# Heatmap of eigengenes per module
+merged_MEs <- merge(MEs,datTraits, by=0)
+merged_MEs_sorted <- merged_MEs[order(merged_MEs$G,merged_MEs$T),] 
+merged_MEs_sorted <- subset(merged_MEs_sorted, select=-c(MEgrey))
+  
+pheatmap_colour = list(
+  G = c("bc∆/∆"="darkred","bcWT"="darkblue"),
+  T = c("bc∆/∆"="darkred","ta∆/∆"="darkgoldenrod1","taWT" ="forestgreen","bcWT"="darkblue"),
+  module=c("MEorange" = "orange","MEbrown" = "brown","MEpurple" = "purple"))
+
+modules_colour = data.frame(colnames(merged_MEs_sorted[2:4]),row.names = colnames(merged_MEs_sorted[2:4]))
+colnames(modules_colour) <- "module"
+
+#Change the columns to plot according to results.
+pheatmap(t(merged_MEs_sorted[,2:4]), cluster_rows = FALSE, main = "Eigengene expression of each module",
+         cluster_cols= FALSE,show_colnames = F, 
+         annotation_col = merged_MEs_sorted[,5:6], 
+         annotation_colors = pheatmap_colour,
+         #annotation_row = modules_colour,
+         cellheight = 30,cellwidth = 30)
+```
+
+[modules_expression_DE.pdf](https://github.com/ibioChile/VidalLab/files/3622363/modules_expression_DE.pdf)
 
 
