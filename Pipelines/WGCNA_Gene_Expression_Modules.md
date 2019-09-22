@@ -29,9 +29,8 @@ TG_DE <- read_xlsx("botrytis.results.01.a2v.coef.xlsx",sheet = "TG",col_names = 
 DE_list <- rbind(T_DE,G_DE,TG_DE) 
 ```
 
-#remove duplicated DE genes
-
 ```
+#remove duplicated DE genes
 DE_data <- expr_data_bot[expr_data_bot$X %in% unique(DE_list$DE),]
 
 #row.names = gene Ids
