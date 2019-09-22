@@ -1,6 +1,6 @@
 # Gene Expression Modules using WGCNA
 
-This pipeline explains how to create gene expression modules (clusters) using the WGCNA R package. The pipeline's input correspond to a list of differentially expressed (DE) genes (it could also be all genes) along with thir gene expression (log scale). In this case, we wil use a set of DE genes from *Botrytis cinerea* when in contact with *Trichoderma*. 
+This pipeline explains how to create gene expression modules (clusters) using the WGCNA R package. The pipeline's input correspond to a list of differentially expressed (DE) genes (it could also be all genes) along with thir gene expression (log scale). In this case, we wil use a set of DE genes from *Botrytis cinerea* when in contact with *Trichoderma*. Input data can be found [here](https://github.com/ibioChile/VidalLab/tree/master/Data/Botrytis_Trichoderma_RNAseq)
 
 1. Install the following libraries
 
