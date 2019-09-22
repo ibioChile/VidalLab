@@ -24,7 +24,7 @@ I recommend to run this script on a server, since it requires a long time of pro
 
 **We will explain 2 different methods for temporal DE analysis. The next steps will be run on RStudio** 
 
-6. Import counts file to R. 
+6. Import [counts](https://github.com/ibioChile/VidalLab/blob/master/Data/Arabidopsis_microRNA/miRNA_counts.tsv) file to R. 
 
 ```counts_isomirs <- read.table("miRNA_counts.tsv", header=TRUE, sep="\t")```
 
