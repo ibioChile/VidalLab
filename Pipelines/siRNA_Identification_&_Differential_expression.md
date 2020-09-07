@@ -19,18 +19,25 @@ This pipeline explains how to identify clusters of siRNA and identify differenti
 3. We use the ```cmscan``` tool from [infernal](http://eddylab.org/infernal/) to search reads belonging to ncRNA, tRNA, mitRNA, miRNA, etc (Fastq files are first converted to fasta files using ```seqtk```).
 
 ```mkdir Rfam```
-```for file in ../adapter/*.fastq; do base=${file##*/}; seqtk seq -A $file > ${file%.*}.fasta; cmscan --cpu 28 --tblout Rfam/${base%.*}.rfam -E 0.001 --noali --rfam --fmt 2 --clanin /home/pcamejo/databases/RFAM/Rfam.clanin /home/pcamejo/databases/RFAM/Rfam.cm ${file%.*}.fasta > Rfam/${base%.*}.cmscan; done```
+```for file in adapter/*.fastq; do base=${file##*/}; seqtk seq -A $file > ${file%.*}.fasta; cmscan --cpu 28 --tblout Rfam/${base%.*}.rfam -E 0.001 --noali --rfam --fmt 2 --clanin /home/pcamejo/databases/RFAM/Rfam.clanin /home/pcamejo/databases/RFAM/Rfam.cm ${file%.*}.fasta > Rfam/${base%.*}.cmscan; done```
 
-4. Remove reads matching Rfam families.
+4. Remove reads matching Rfam families, using the command ```filterbyname.sh``` from ```bbmap```.
 
 ```mkdir Rfam_filtered```
-```for file in Rfam/*.rfam; do base=${file##*/}; awk '{print $4}’ $file >  ${base%.*}.tofilt.list; filterbyname.sh in=../adapter/${base%.*}.fastq names=${base%.*}.tofilt.list out=Rfam_filtered/${base%.*}.rfam.fastq; done```
+```for file in Rfam/*.rfam; do base=${file##*/}; awk '{print $4}’ $file >  ${base%.*}.tofilt.list; filterbyname.sh in=adapter/${base%.*}.fastq names=${base%.*}.tofilt.list out=Rfam_filtered/${base%.*}.rfam.fastq; done```
 
-5. A counts table can be generated using the [*isoCounts.R*](https://github.com/ibioChile/VidalLab/blob/master/Scripts/isoCounts.R) script, which takes the formatted *.mirna* files as input. This script uses the [isoCounts](http://lpantano.github.io/isomiRs/reference/isoCounts.html) function from [isomiRs](https://bioconductor.org/packages/release/bioc/html/isomiRs.html) package.
+5. Run [Shortstack](https://github.com/MikeAxtell/ShortStack) with each libray to annotate small RNA-producing genes
 
-```Rscript isoCounts.R```
+```for file in ../Rfam_filtered/*.fastq; do base=${file##*/}; ShortStack --bowtie_cores 20 --readfile $file --genomefile GCF_000001735.4_TAIR10.1_genomic.fasta --outdir shortstack/${base%.*}_ssout --mismatches 0 --nohp; done```
 
-I recommend to run this script on a server, since it requires a long time of processing. The output of this script can be used for any DE analysis.
+6. We use ```multiIntersectBed``` from ```Bedtools``` to find shared clusters in the different libraries. We will create a bash file ```multiIntersectBed.sh``` containing the script to run ```multiIntersectBed``` with all libraries.
+
+```cd shortstack/```
+```touch multiIntersectBed.sh```
+```echo -n "multiIntersectBed -header -i " > multiIntersectBed.sh```
+```for folder in *_ssout/; do cd $folder; gff2bed  < ShortStack_D.gff3 > ${folder%_*_*_*_*}_ShortStack_D.bed; cd ..; echo -n "$folder${folder%_*_*_*_*}_ShortStack_D.bed " >> multiIntersectBed.sh; done```
+```echo "> intersect_shortstack_DC.out" >> multiIntersectBed.sh```
+```bash multiIntersectBed.sh```
 
 **We will explain 2 different methods for temporal DE analysis. The next steps will be run on RStudio** 
 
