@@ -95,7 +95,7 @@ Ara_siRNA_norm <- counts(dds, normalized=TRUE)
 
 - RNentropy (*Zambelli et al. 2018*): identification of genes showing a significant variation of expression across all conditions studied. The samples, corresponding to different conditions sequenced in any number of replicates, are compared by taking into account the global gene expression level and at the same time the impact of biological variation across replicates. 
 
-- Normalized counts are analyzed using the RN_calc tool of the RNentropy R package. Selection of DE miRNA is done with RN_select using the  Benjamini-Hochberg procedure (Benjamini & Hochberg, 1995)  to control the false discovery rate (FDR). Thresholds for global and local p-values are set to 0.01 (default). 
+- Normalized counts are analyzed using the RN_calc tool of the RNentropy R package. Selection of DE clusters is done with RN_select using the  Benjamini-Hochberg procedure (Benjamini & Hochberg, 1995)  to control the false discovery rate (FDR). Thresholds for global and local p-values are set to 0.01 (default). 
 
 ```
 cond <- rbind(matrix(data=c(1,0,0,0,0,0),nrow=3,ncol=6,byrow = TRUE),
@@ -107,37 +107,40 @@ cond <- rbind(matrix(data=c(1,0,0,0,0,0),nrow=3,ncol=6,byrow = TRUE),
 cond <- data.frame(cond, row.names=c("f1","f2","f3","f4","f5","f6","f7","f8","f9","f10","f11","f12","f13","f14","f15","f16","f17","f18"))
 names(cond) <- c("d5","d9","d13","d17","d21","d25")
 
-RNent_results <- RN_calc(as.data.frame(normalized_counts), as.matrix(cond))
+RNent_results <- RN_calc(as.data.frame(Ara_siRNA_norm), as.matrix(cond))
 RN_pmi(RNent_results)
 D3_results_De <- RN_select(RNent_results, method = "BH")
 DE_results <- D3_results_De$selected
 ```
 
-- A post-processing filter was applied to determine DE miRNA. Only samples with an estimated expression value (non NA) in at least 5 of the 6 days analyzed were considered as DE over the time course. 
+- A post-processing filter was applied to determine DE clusters. Only samples with an estimated expression value (non NA) in at least 5 of the 6 days analyzed were considered as DE over the time course. 
 
 ```
 DE_results_filtered <- DE_results[rowSds(as.matrix(DE_results[3:8]),na.rm=TRUE) != 0,]
 DE_results_filtered2 <- DE_results_filtered[rowSums(is.na(DE_results_filtered[3:8])) < 2,]
 
 #Extract log data from DE miRNA
-DE_miRNA <- row.names(DE_results_filtered2)
-normalized_counts_log <- log2(normalized_counts + 1)
-DE_miRNA_data <- normalized_counts_log[rownames(normalized_counts_log) %in% DE_miRNA,]
+DE_clusters <- row.names(DE_results_filtered2)
+DE_clusters_data <- log2(Ara_siRNA_norm[rownames(Ara_siRNA_norm) %in% DE_clusters,] + 1)
 ```
 
-- Also, microRNA with a mean delta log2 among the maximum and minimum expression over time < 1 were discarded.
+- Also, clusters with a mean delta log2 among the maximum and minimum expression over time < 1 were discarded.
 
 ```
-DE_miRNA_data_cond <- data.frame(t(DE_miRNA_data[,1:18]))
-DE_miRNA_data_cond <- cbind('condition' = de$condition, DE_miRNA_data_cond)
-mean_exp <- data.frame(DE_miRNA_data_cond %>% group_by(condition) %>% summarise_each(mean))
+DE_clusters_data_cond <- data.frame(t(DE_clusters_data[,1:18]))
+DE_clusters_data_cond <- cbind('condition' = de$condition, DE_clusters_data_cond)
+mean_exp <- data.frame(DE_clusters_data_cond %>% group_by(condition) %>% summarise_each(mean))
 mean_exp <- mean_exp[,-1]
-min_DE_miRNA_data <- apply(mean_exp, 2, FUN=min)
-max_DE_miRNA_data <- apply(mean_exp, 2, FUN=max)
-deltalog <- as.numeric(max_DE_miRNA_data) - as.numeric(min_DE_miRNA_data)
+min_DE_clusters_data <- apply(mean_exp, 2, FUN=min)
+max_DE_clusters_data <- apply(mean_exp, 2, FUN=max)
+deltalog <- as.numeric(max_DE_clusters_data) - as.numeric(min_DE_clusters_data)
 
-DE_miRNA_data2 <- DE_miRNA_data[deltalog > 1,]
-DE_results_filtered3 <- DE_results_filtered2[row.names(DE_results_filtered2) %in% row.names(DE_miRNA_data2),]
+DE_clusters_data2 <- DE_clusters_data[deltalog > 1,]
+DE_results_filtered3 <- DE_results_filtered2[row.names(DE_results_filtered2) %in% row.names(DE_clusters_data2),]
+
+write.table(rownames(DE_results_filtered3), "DE_list.tsv", quote = FALSE, sep = "\t",row.names = FALSE, col.names = FALSE)
 ```
 
-*DE_miRNA_data2* : RNentropy data of under and over expre
+*DE_clusters_data2* : RNentropy data of under and over expressed clusters
+
+
