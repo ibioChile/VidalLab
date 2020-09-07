@@ -5,7 +5,9 @@ This pipeline explains how to identify clusters of siRNA and identify differenti
 1. Create environment and install programs required for this pipeline.
 
 ```conda create -n sirna```
+
 ```conda activate sirna```
+
 ```conda install -c bioconda shortstack infernal bedtools seqtk bbmap```
 
 1. Remove adapters from microRNA libraries using cutadapt. Reads with length <18 bp and >28 bp are discarded. 
@@ -19,11 +21,13 @@ This pipeline explains how to identify clusters of siRNA and identify differenti
 3. We use the ```cmscan``` tool from [infernal](http://eddylab.org/infernal/) to search reads belonging to ncRNA, tRNA, mitRNA, miRNA, etc (Fastq files are first converted to fasta files using ```seqtk```).
 
 ```mkdir Rfam```
+
 ```for file in adapter/*.fastq; do base=${file##*/}; seqtk seq -A $file > ${file%.*}.fasta; cmscan --cpu 28 --tblout Rfam/${base%.*}.rfam -E 0.001 --noali --rfam --fmt 2 --clanin /home/pcamejo/databases/RFAM/Rfam.clanin /home/pcamejo/databases/RFAM/Rfam.cm ${file%.*}.fasta > Rfam/${base%.*}.cmscan; done```
 
 4. Remove reads matching Rfam families, using the command ```filterbyname.sh``` from ```bbmap```.
 
 ```mkdir Rfam_filtered```
+
 ```for file in Rfam/*.rfam; do base=${file##*/}; awk '{print $4}’ $file >  ${base%.*}.tofilt.list; filterbyname.sh in=adapter/${base%.*}.fastq names=${base%.*}.tofilt.list out=Rfam_filtered/${base%.*}.rfam.fastq; done```
 
 5. Run [Shortstack](https://github.com/MikeAxtell/ShortStack) with each libray to annotate small RNA-producing genes
@@ -33,24 +37,31 @@ This pipeline explains how to identify clusters of siRNA and identify differenti
 6. We use ```multiIntersectBed``` from ```Bedtools``` to find shared clusters in the different libraries. We will create a bash file ```multiIntersectBed.sh``` containing the script to run ```multiIntersectBed``` with all libraries.
 
 ```cd shortstack/```
+
 ```touch multiIntersectBed.sh```
+
 ```echo -n "multiIntersectBed -header -i " > multiIntersectBed.sh```
+
 ```for folder in *_ssout/; do cd $folder; gff2bed  < ShortStack_D.gff3 > ${folder%_*_*_*_*}_ShortStack_D.bed; cd ..; echo -n "$folder${folder%_*_*_*_*}_ShortStack_D.bed " >> multiIntersectBed.sh; done```
+
 ```echo "> intersect_shortstack_DC.out" >> multiIntersectBed.sh```
+
 ```bash multiIntersectBed.sh```
 
-**We will explain 2 different methods for temporal DE analysis. The next steps will be run on RStudio** 
+7. The output ```intersect_shortstack_DC.out``` was filtered so that only regions that were present in at least 2 (out of 3) libraries for at least one day were used to serve as the final reference small RNA locus boundaries. Export the filtered regions as a bed file ```intersect_shortstack_DC_2out3lib.bed``` containing a list of filtered clusters genome, start and end information, separated by a tab (This step was carried out in excel).
 
-6. Import [counts](https://github.com/ibioChile/VidalLab/blob/master/Data/Arabidopsis_microRNA/miRNA_counts.tsv) file to R. 
+8. Merge locus with 2nt of difference:
 
-```counts_isomirs <- read.table("miRNA_counts.tsv", header=TRUE, sep="\t")```
+``` mergeBed -d 2 -i intersect_shortstack_DC_2out3lib.bed > output_merged_intervals_file.bed```
 
-7. Filter counts: Only miRNA with a minimum of 5 counts in at least 25% of samples (5 in this case) are considered for DE analysis.
+7. ShortStack-count mode under default settings was then used to find relative small RNA abundances on this reference list of each library.
 
-```
-x <- counts_isomirs >= 5
-counts_isomirs_add <- counts_isomirs[rowSums(x == TRUE) >= 5,]
-```
+```awk '{print $1":"$2"-"$3}' output_merged_intervals_file.bed > output_merged_intervals_file_loci.bed```
+
+```cd Rfam_filtered/```
+
+```ShortStack --bowtie_cores 10 --readfile  1-150_S1_L000_R1_000.filtered.rfam.fastq 20-150_S11_L000_R1_000.filtered.rfam.fastq 27-140_S15_L000_R1_000.filtered.rfam.fastq 7-140_S4_L000_R1_000.filtered.rfam.fastq 13-140_S7_L000_R1_000.filter ...(list all files)  --genomefile GCF_000001735.4_TAIR10.1_genomic.fasta --outdir shortstack_filt --locifile output_merged_intervals_file_loci.bed --sort_mem 1G --nohp```
+
 
 ## Approach 1: One-way analysis of variance
 
