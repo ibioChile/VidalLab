@@ -14,7 +14,7 @@ This pipeline explains how to identify clusters of siRNA and identify differenti
 
 ```for file in fastq/*.fastq; do base=${file##*/}; cutadapt -a TGGAATTCTCGGGTGCCAAGG -m 18 -M 28 --discard-untrimmed -o adapter/${base%.*}.filtered.fastq $file; done```
 
-2. - Download Rfam.cm and Rfam.clanin databases from the [Rfam FTP site](ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT). Create a folder ```DB/``` and store files there. Compress Rfam database.
+2. Download Rfam.cm and Rfam.clanin databases from the [Rfam FTP site](ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT). Create a folder ```DB/``` and store files there. Compress Rfam database.
 
 ```cmpress Rfam.cm```
 
@@ -140,7 +140,4 @@ DE_results_filtered3 <- DE_results_filtered2[row.names(DE_results_filtered2) %in
 
 write.table(rownames(DE_results_filtered3), "DE_list.tsv", quote = FALSE, sep = "\t",row.names = FALSE, col.names = FALSE)
 ```
-
-*DE_clusters_data2* : RNentropy data of under and over expressed clusters
-
 
