@@ -54,13 +54,21 @@ This pipeline explains how to identify clusters of siRNA and identify differenti
 
 ``` mergeBed -d 2 -i intersect_shortstack_DC_2out3lib.bed > output_merged_intervals_file.bed```
 
-7. ShortStack-count mode under default settings was then used to find relative small RNA abundances on this reference list of each library.
+9. ShortStack-count mode under default settings was then used to find relative small RNA abundances on this reference list of each library.
 
 ```awk '{print $1":"$2"-"$3}' output_merged_intervals_file.bed > output_merged_intervals_file_loci.bed```
 
 ```cd Rfam_filtered/```
 
 ```ShortStack --bowtie_cores 10 --readfile  1-150_S1_L000_R1_000.filtered.rfam.fastq 20-150_S11_L000_R1_000.filtered.rfam.fastq 27-140_S15_L000_R1_000.filtered.rfam.fastq 7-140_S4_L000_R1_000.filtered.rfam.fastq 13-140_S7_L000_R1_000.filter ...(list all files)  --genomefile GCF_000001735.4_TAIR10.1_genomic.fasta --outdir shortstack_filt --locifile output_merged_intervals_file_loci.bed --sort_mem 1G --nohp```
+
+10. Extract miRNA with DicerCall (DC) annotation.
+
+```cd shortstack_filt```
+
+```awk '$12 != "N" {print $1}' Results.txt > Results_DC_locus.txt```
+
+```while read line; do grep $line Counts.txt >> Counts_DC.txt; done < Results_DC_locus.txt```
 
 
 ## Approach 1: One-way analysis of variance
