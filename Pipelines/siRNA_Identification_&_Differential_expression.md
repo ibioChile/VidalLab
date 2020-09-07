@@ -62,7 +62,7 @@ This pipeline explains how to identify clusters of siRNA and identify differenti
 
 ```ShortStack --bowtie_cores 10 --readfile  1-150_S1_L000_R1_000.filtered.rfam.fastq 20-150_S11_L000_R1_000.filtered.rfam.fastq 27-140_S15_L000_R1_000.filtered.rfam.fastq 7-140_S4_L000_R1_000.filtered.rfam.fastq 13-140_S7_L000_R1_000.filter ...(list all files)  --genomefile GCF_000001735.4_TAIR10.1_genomic.fasta --outdir shortstack_filt --locifile output_merged_intervals_file_loci.bed --sort_mem 1G --nohp```
 
-10. Extract miRNA with DicerCall (DC) annotation.
+10. Extract counts of small RNA clusters with DicerCall (DC) annotation.
 
 ```cd shortstack_filt```
 
@@ -71,71 +71,29 @@ This pipeline explains how to identify clusters of siRNA and identify differenti
 ```while read line; do grep $line Counts.txt >> Counts_DC.txt; done < Results_DC_locus.txt```
 
 
-## Approach 1: One-way analysis of variance
+## RNentropy
 
-- Raw read counts were first median-normalized to adjust for the effect of library sizes and read count distributions *(Anders & Huber 2010)*. Normalized counts are converted to the log2 scale, using log2 (x + 1) for conversion.
+- Raw read counts are first median-normalized to adjust for the effect of library sizes and read count distributions *(Anders & Huber 2010)*. Normalized counts are converted to the log2 scale, using log2 (x + 1) for conversion.
 
 ```
 library(DESeq2)
-de <- data.frame(row.names=c("f1","f2","f3","f4","f5","f6","f7","f8","f9","f10","f11","f12","f13","f14","f15","f16","f17","f18"), condition = c("d5", "d5", "d5","d9","d9","d9","d13","d13","d13","d17","d17","d17","d21","d21","d21","d25","d25","d25"))
-dds = DESeqDataSetFromMatrix(counts_isomirs_add , de , design = ~ condition)
+
+Ara_siRNA <- read.table("Counts_DC.txt", header=TRUE, row.names = 1, sep="\t")
+
+Ara_siRNA <- Ara_siRNA[,-1:-2]
+
+de <- data.frame(row.names=colnames(Ara_siRNA), condition = c("d5", "d5", "d5","d9","d9","d9","d13","d13","d13","d17","d17","d17","d21","d21","d21","d25","d25","d25"))
+
+dds = DESeqDataSetFromMatrix(Ara_siRNA , de , design = ~ condition)
+
 dds <- estimateSizeFactors(dds)
+
 sizeFactors(dds)
-normalized_counts <- counts(dds, normalized=TRUE)
-normalized_counts_log <- log2(normalized_counts + 1)
+
+Ara_siRNA_norm <- counts(dds, normalized=TRUE)
 ```
 
-- To check that this type of normalization actually changed the variance of your data, we can plot the relative log distribution (rle), before and after normalization.
-
-```
-counts_isomirs_add_log <- log2(counts_isomirs_add  + 1)
-
-mn_bef  <- apply(counts_isomirs_add_log, 1, median)
-rle <- data.frame(sweep(counts_isomirs_add_log, MARGIN=1, STATS=mn_bef , FUN='-'))
-boxplot(rle, xlab="Samples",ylab="RLE Before Normalization")
-
-mn_aft  <- apply(normalized_counts_log, 1, median)
-rle <- data.frame(sweep(normalized_counts_log, MARGIN=1, STATS=mn_aft, FUN='-'))
-boxplot(rle, xlab="Samples",ylab="RLE After Normalization")
-```
-
-This is an example of these plots.
-
-![Deseq2_normalization](https://user-images.githubusercontent.com/53570955/64458226-c2af1e00-d0c2-11e9-9a2f-bf194f16132e.jpg)
-
-- Use the function *anova* to carry out an analysis of variance for each miRNA data.
-
-```
-data_in <- t(normalized_counts_log)
-data_in <- cbind(time = de,data_in)
-
-p_val_list <- character(0)
-for (gene in rownames(normalized_counts_log)){
-  data_to_aov <- data_in[,c("condition",gene)]
-  colnames(data_to_aov) <- c("condition","miRNA")
-  fmla <- as.formula("miRNA ~ condition")
-  aov_fmla <- aov(fmla, data = data_to_aov)
-  p_val  <- summary(aov_fmla)[[1]][["Pr(>F)"]][1]
-  p_val_list <- as.numeric(append(p_val_list,p_val))
-}
-```
-
-- The Benjamini-Hochberg procedure (Benjamini & Hochberg, 1995) is used to control the false discovery rate (FDR) based on the p-values obtained from the ANOVA analysis. 
-
-```
-pval_adjust <- p.adjust(p_val_list, method = "BH")
-data_out_aov <- data.frame(cbind(normalized_counts_log,'p-val'=p_val_list, 'adjusted p-val' = pval_adjust))
-```
-
-- microRNAs having p-values with an FDR threshold < 0.05 are designated as differentially expressed.
-
-```
-DE_miRNA <- data_out_aov[data_out_aov$adjusted.p.val < 0.05,]
-```
-
-## Approach 2: RNentropy
-
-RNentropy (*Zambelli et al. 2018*): identification of genes showing a significant variation of expression across all conditions studied. The samples, corresponding to different conditions sequenced in any number of replicates, are compared by taking into account the global gene expression level and at the same time the impact of biological variation across replicates. 
+- RNentropy (*Zambelli et al. 2018*): identification of genes showing a significant variation of expression across all conditions studied. The samples, corresponding to different conditions sequenced in any number of replicates, are compared by taking into account the global gene expression level and at the same time the impact of biological variation across replicates. 
 
 - Normalized counts are analyzed using the RN_calc tool of the RNentropy R package. Selection of DE miRNA is done with RN_select using the  Benjamini-Hochberg procedure (Benjamini & Hochberg, 1995)  to control the false discovery rate (FDR). Thresholds for global and local p-values are set to 0.01 (default). 
 
