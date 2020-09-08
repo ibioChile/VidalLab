@@ -66,7 +66,9 @@ This pipeline explains how to identify clusters of siRNA and identify differenti
 
 ```cd shortstack_filt```
 
-```awk '$12 != "N" {print $1}' Results.txt > Results_DC_locus.txt```
+```awk '$12 != "N" {print $1}' Results.txt > Results_DC.txt```
+
+```awk '{print $1}' Results_DC.txt > Results_DC_locus.txt```
 
 ```while read line; do grep $line Counts.txt >> Counts_DC.txt; done < Results_DC_locus.txt```
 
@@ -138,12 +140,23 @@ deltalog <- as.numeric(max_DE_clusters_data) - as.numeric(min_DE_clusters_data)
 DE_clusters_data2 <- DE_clusters_data[deltalog > 1,]
 DE_results_filtered3 <- DE_results_filtered2[row.names(DE_results_filtered2) %in% row.names(DE_clusters_data2),]
 
+# Export information of DE clusters
+Ara_siRNA_shortstack <- read.table("Results_DC.txt", header=TRUE, row.names = 1, sep="\t")
+Ara_siRNA_shortstack_DE <- Ara_siRNA_shortstack[rownames(DE_results_filtered3),]
+write.table(Ara_siRNA_shortstack_DE,"Results_DC_DE.txt",quote = FALSE, sep = "\t",row.names = TRUE,
+            col.names = TRUE)
+
+# Export normalized counts of DE clusters
+write.table(DE_clusters_data2,"Counts_DC_DE.txt",quote = FALSE, sep = "\t",row.names = TRUE,
+            col.names = TRUE)
+
 # Import DE clusters as bed file
-
 bed_clusters_DE1 <- do.call("rbind", strsplit(rownames(DE_results_filtered3), "-"))
-bed_clusters_DE <- cbind(do.call("rbind", strsplit(bed_clusters_DE1[,1], ":")),bed_clusters_DE1[,2])
+bed_clusters_DE2 <- cbind(do.call("rbind", strsplit(bed_clusters_DE1[,1], ":")),bed_clusters_DE1[,2])
 
-write.table(bed_clusters_DE,"/Users/pamelacamejo/Documents/IBIO/Elena_Vidal/Projects/Arabidopsis/Analyses/ShortStack/RNEntropy/DE_list.bed",quote = FALSE, sep = "\t",row.names = FALSE,
+bed_clusters_DE <- cbind(data.frame(bed_clusters_DE2),Ara_siRNA_shortstack_DE$Name,Ara_siRNA_shortstack_DE$Length,Ara_siRNA_shortstack_DE$Strand)
+
+write.table(bed_clusters_DE,"DE_list.bed",quote = FALSE, sep = "\t",row.names = FALSE,
             col.names = FALSE)
 ```
 
