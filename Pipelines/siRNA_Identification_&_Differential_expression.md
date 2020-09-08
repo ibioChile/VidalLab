@@ -147,7 +147,7 @@ write.table(bed_clusters_DE,"/Users/pamelacamejo/Documents/IBIO/Elena_Vidal/Proj
             col.names = FALSE)
 ```
 
-## Identify clusters located within gene body and promoter
+## Identify clusters located within gene body and promoter (2 kb upstream)
 
 - Arabidopsis GFF file is transformed to BED file
 
@@ -156,11 +156,6 @@ write.table(bed_clusters_DE,"/Users/pamelacamejo/Documents/IBIO/Elena_Vidal/Proj
 - Select 'genes' from Arabidopsis BED file:
 
       awk '$8 == "gene"' Araport11_GFF3_genes_transposons.201606.bed > Araport11_GFF3_genes_transposons.201606.genes.bed
-
-- Generate forward and reverse Arabidopsis genes files
-
-      awk '$6=="-"' Araport11_GFF3_genes_transposons.201606.genes.bed > Araport11_GFF3_genes_transposons.201606.genes.rev.bed
-      awk '$6=="+"' Araport11_GFF3_genes_transposons.201606.genes.bed > Araport11_GFF3_genes_transposons.201606.genes.fwd.bed
 
 - Create file with length of each chromosome of Arabidopsis
 
@@ -171,8 +166,30 @@ write.table(bed_clusters_DE,"/Users/pamelacamejo/Documents/IBIO/Elena_Vidal/Proj
 
       sortBed -g genome_fasta.contig.size -i Araport11_GFF3_genes_transposons.201606.genes.bed > Araport11_GFF3_genes_transposons.201606.genes.sorted.bed
 
+- Generate forward and reverse Arabidopsis genes files
+
+      awk '$6=="-"' Araport11_GFF3_genes_transposons.201606.genes.sorted.bed > Araport11_GFF3_genes_transposons.201606.genes.rev.bed
+      awk '$6=="+"' Araport11_GFF3_genes_transposons.201606.genes.sorted.bed > Araport11_GFF3_genes_transposons.201606.genes.fwd.bed
+
 - Create file with intergenic regions in Arabidopsis
 
       complementBed -i Araport11_GFF3_genes_transposons.201606.genes.sorted.bed -g genome_fasta.contig.size > Araport11_GFF3_genes_transposons.201606.intergenic.bed
+      
+- Filter clusters to the ones located in intergenic regions
 
+      sortBed -g genome_fasta.contig.size -i DE_list.bed > DE_list.sorted.bed
+      bedtools intersect -wa -a DE_list.sorted.bed -b  Araport11_GFF3_genes_transposons.201606.intergenic.bed > DE_list.intergenic.bed
+      
+- Find genes with motifs located up to 2000bp of each gene
+      
+      bedops --range -2000:0 --everything Araport11_GFF3_genes_transposons.201606.genes.fwd.bed | bedmap --echo --echo-map-id --echo-map-range --fraction-map 1 - DE_list.intergenic.bed | bedops --range 2000:0 --everything - > DE_list.intergenic.fwd.2000bp.bed
+      
+      bedops --range -0:2000 --everything Araport11_GFF3_genes_transposons.201606.genes.rev.bed | bedmap --echo --echo-map-id --echo-map-range --fraction-map 1 - DE_list.intergenic.bed | bedops --range 0:-2000 --everything - > DE_list.intergenic.rev.2000bp.bed
+      
+- Concatenate results
 
+      cat DE_list.intergenic.fwd.2000bp.bed DE_list.intergenic.rev.2000bp.bed > DE_list.intergenic.2000bp.bed
+      
+- Find genes overlapping gene body
+      
+      bedmap --echo --echo-map-id --echo-map-range --fraction-map 1 Araport11_GFF3_genes_transposons.201606.genes.sorted.bed DE_list.sorted.bed > DE_list.gene.body.bed
