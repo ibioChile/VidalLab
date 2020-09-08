@@ -151,28 +151,28 @@ write.table(bed_clusters_DE,"/Users/pamelacamejo/Documents/IBIO/Elena_Vidal/Proj
 
 - Arabidopsis GFF file is transformed to BED file
 
- convert2bed -i gff < Araport11_GFF3_genes_transposons.201606.gff > Araport11_GFF3_genes_transposons.201606.bed
+      convert2bed -i gff < Araport11_GFF3_genes_transposons.201606.gff > Araport11_GFF3_genes_transposons.201606.bed
  
 - Select 'genes' from Arabidopsis BED file:
 
-awk '$8 == "gene"' Araport11_GFF3_genes_transposons.201606.bed > Araport11_GFF3_genes_transposons.201606.genes.bed
+      awk '$8 == "gene"' Araport11_GFF3_genes_transposons.201606.bed > Araport11_GFF3_genes_transposons.201606.genes.bed
 
 - Generate forward and reverse Arabidopsis genes files
 
-awk '$6=="-"' Araport11_GFF3_genes_transposons.201606.genes.bed > Araport11_GFF3_genes_transposons.201606.genes.rev.bed
-awk '$6=="+"' Araport11_GFF3_genes_transposons.201606.genes.bed > Araport11_GFF3_genes_transposons.201606.genes.fwd.bed
+      awk '$6=="-"' Araport11_GFF3_genes_transposons.201606.genes.bed > Araport11_GFF3_genes_transposons.201606.genes.rev.bed
+      awk '$6=="+"' Araport11_GFF3_genes_transposons.201606.genes.bed > Araport11_GFF3_genes_transposons.201606.genes.fwd.bed
 
 - Create file with length of each chromosome of Arabidopsis
 
-samtools faidx GCF_000001735.4_TAIR10.1_genomic.fasta
-cut -f1,2 GCF_000001735.4_TAIR10.1_genomic.fasta.fai > genome_fasta.contig.size
+      samtools faidx GCF_000001735.4_TAIR10.1_genomic.fasta
+      cut -f1,2 GCF_000001735.4_TAIR10.1_genomic.fasta.fai > genome_fasta.contig.size
 
 - Sort Botrytis genes BED file according to genomes name
 
-sortBed -g genome_fasta.contig.size -i Araport11_GFF3_genes_transposons.201606.genes.bed > Araport11_GFF3_genes_transposons.201606.genes.sorted.bed
+      sortBed -g genome_fasta.contig.size -i Araport11_GFF3_genes_transposons.201606.genes.bed > Araport11_GFF3_genes_transposons.201606.genes.sorted.bed
 
-- Create file with intergenic regions in Botrytis
+- Create file with intergenic regions in Arabidopsis
 
-complementBed -i Araport11_GFF3_genes_transposons.201606.genes.sorted.bed -g genome_fasta.contig.size > Araport11_GFF3_genes_transposons.201606.intergenic.bed
+      complementBed -i Araport11_GFF3_genes_transposons.201606.genes.sorted.bed -g genome_fasta.contig.size > Araport11_GFF3_genes_transposons.201606.intergenic.bed
 
 
