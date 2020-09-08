@@ -8,7 +8,7 @@ This pipeline explains how to identify clusters of siRNA and identify differenti
 
 ```conda activate sirna```
 
-```conda install -c bioconda shortstack infernal bedtools seqtk bbmap```
+```conda install -c bioconda shortstack infernal bedtools seqtk bbmap bedops```
 
 1. Remove adapters from microRNA libraries using cutadapt. Reads with length <18 bp and >28 bp are discarded. 
 
@@ -71,7 +71,7 @@ This pipeline explains how to identify clusters of siRNA and identify differenti
 ```while read line; do grep $line Counts.txt >> Counts_DC.txt; done < Results_DC_locus.txt```
 
 
-## RNentropy
+## RNentropy (This part is run in R)
 
 - Raw read counts are first median-normalized to adjust for the effect of library sizes and read count distributions *(Anders & Huber 2010)*. Normalized counts are converted to the log2 scale, using log2 (x + 1) for conversion.
 
@@ -79,7 +79,6 @@ This pipeline explains how to identify clusters of siRNA and identify differenti
 library(DESeq2)
 
 Ara_siRNA <- read.table("Counts_DC.txt", header=TRUE, row.names = 1, sep="\t")
-
 Ara_siRNA <- Ara_siRNA[,-1:-2]
 
 de <- data.frame(row.names=colnames(Ara_siRNA), condition = c("d5", "d5", "d5","d9","d9","d9","d13","d13","d13","d17","d17","d17","d21","d21","d21","d25","d25","d25"))
@@ -104,6 +103,7 @@ cond <- rbind(matrix(data=c(1,0,0,0,0,0),nrow=3,ncol=6,byrow = TRUE),
               matrix(data=c(0,0,0,1,0,0),nrow=3,ncol=6,byrow = TRUE),
               matrix(data=c(0,0,0,0,1,0),nrow=3,ncol=6,byrow = TRUE),
               matrix(data=c(0,0,0,0,0,1),nrow=3,ncol=6,byrow = TRUE))
+
 cond <- data.frame(cond, row.names=c("f1","f2","f3","f4","f5","f6","f7","f8","f9","f10","f11","f12","f13","f14","f15","f16","f17","f18"))
 names(cond) <- c("d5","d9","d13","d17","d21","d25")
 
@@ -146,3 +146,33 @@ bed_clusters_DE <- cbind(do.call("rbind", strsplit(bed_clusters_DE1[,1], ":")),b
 write.table(bed_clusters_DE,"/Users/pamelacamejo/Documents/IBIO/Elena_Vidal/Projects/Arabidopsis/Analyses/ShortStack/RNEntropy/DE_list.bed",quote = FALSE, sep = "\t",row.names = FALSE,
             col.names = FALSE)
 ```
+
+## Identify clusters located within gene body and promoter
+
+- Arabidopsis GFF file is transformed to BED file
+
+ convert2bed -i gff < Araport11_GFF3_genes_transposons.201606.gff > Araport11_GFF3_genes_transposons.201606.bed
+ 
+- Select 'genes' from Arabidopsis BED file:
+
+awk '$8 == "gene"' Araport11_GFF3_genes_transposons.201606.bed > Araport11_GFF3_genes_transposons.201606.genes.bed
+
+- Generate forward and reverse Arabidopsis genes files
+
+awk '$6=="-"' Araport11_GFF3_genes_transposons.201606.genes.bed > Araport11_GFF3_genes_transposons.201606.genes.rev.bed
+awk '$6=="+"' Araport11_GFF3_genes_transposons.201606.genes.bed > Araport11_GFF3_genes_transposons.201606.genes.fwd.bed
+
+- Create file with length of each chromosome of Arabidopsis
+
+samtools faidx GCF_000001735.4_TAIR10.1_genomic.fasta
+cut -f1,2 GCF_000001735.4_TAIR10.1_genomic.fasta.fai > genome_fasta.contig.size
+
+- Sort Botrytis genes BED file according to genomes name
+
+sortBed -g genome_fasta.contig.size -i Araport11_GFF3_genes_transposons.201606.genes.bed > Araport11_GFF3_genes_transposons.201606.genes.sorted.bed
+
+- Create file with intergenic regions in Botrytis
+
+complementBed -i Araport11_GFF3_genes_transposons.201606.genes.sorted.bed -g genome_fasta.contig.size > Araport11_GFF3_genes_transposons.201606.intergenic.bed
+
+
