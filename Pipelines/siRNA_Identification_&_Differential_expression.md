@@ -138,6 +138,11 @@ deltalog <- as.numeric(max_DE_clusters_data) - as.numeric(min_DE_clusters_data)
 DE_clusters_data2 <- DE_clusters_data[deltalog > 1,]
 DE_results_filtered3 <- DE_results_filtered2[row.names(DE_results_filtered2) %in% row.names(DE_clusters_data2),]
 
-write.table(rownames(DE_results_filtered3), "DE_list.tsv", quote = FALSE, sep = "\t",row.names = FALSE, col.names = FALSE)
-```
+# Import DE clusters as bed file
 
+bed_clusters_DE1 <- do.call("rbind", strsplit(rownames(DE_results_filtered3), "-"))
+bed_clusters_DE <- cbind(do.call("rbind", strsplit(bed_clusters_DE1[,1], ":")),bed_clusters_DE1[,2])
+
+write.table(bed_clusters_DE,"/Users/pamelacamejo/Documents/IBIO/Elena_Vidal/Projects/Arabidopsis/Analyses/ShortStack/RNEntropy/DE_list.bed",quote = FALSE, sep = "\t",row.names = FALSE,
+            col.names = FALSE)
+```
