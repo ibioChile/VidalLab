@@ -73,7 +73,7 @@ This pipeline explains how to identify clusters of siRNA and identify differenti
 ```while read line; do grep $line Counts.txt >> Counts_DC.txt; done < Results_DC_locus.txt```
 
 
-## RNentropy (This part is run in R)
+## RNentropy (R Script)
 
 - Raw read counts are first median-normalized to adjust for the effect of library sizes and read count distributions *(Anders & Huber 2010)*. Normalized counts are converted to the log2 scale, using log2 (x + 1) for conversion.
 
