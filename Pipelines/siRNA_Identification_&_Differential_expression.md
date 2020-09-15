@@ -205,4 +205,4 @@ write.table(bed_clusters_DE,"DE_list.bed",quote = FALSE, sep = "\t",row.names = 
       
 - Find genes overlapping gene body
       
-      bedmap --echo --echo-map-id --echo-map-range --fraction-map 1 Araport11_GFF3_genes_transposons.201606.genes.sorted.bed DE_list.sorted.bed > DE_list.gene.body.bed
+      bedmap --echo --skip-unmapped --echo-map-id --delim '\t' --fraction-map 1 Araport11_GFF3_genes_transposons.201606.genes.sorted.bed DE_list.sorted.bed | awk -F $'\t' '{n_ids = split($11, ids, ";"); for (idx = 1; idx <= n_ids; idx++) {print $1"\t"$2"\t"$3"\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9"\t"$10"\t"ids[idx];} }' | sort-bed - |  uniq > DE_list.gene.body.bed
