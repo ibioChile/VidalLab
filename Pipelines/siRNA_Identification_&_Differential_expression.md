@@ -197,7 +197,7 @@ write.table(bed_clusters_DE,"DE_list.bed",quote = FALSE, sep = "\t",row.names = 
       
       bedops --range -2000:0 --everything Araport11_GFF3_genes_transposons.201606.genes.fwd.bed | bedmap --echo --skip-unmapped --echo-map-id --delim '\t' --fraction-map 1 - DE_list.intergenic.bed | bedops --range 2000:0 --everything - | awk -F $'\t' '{n_ids = split($11, ids, ";"); for (idx = 1; idx <= n_ids; idx++) {print $1"\t"$2"\t"$3"\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9"\t"$10"\t"ids[idx];} }' | sort-bed - |  uniq > DE_list.intergenic.fwd.2000bp.bed
       
-      bedops --range -0:2000 --everything Araport11_GFF3_genes_transposons.201606.genes.rev.bed | bedmap --echo --skip-unmapped --echo-map-id --delim '\t' --fraction-map 1 - DE_list.intergenic.bed | bedops --range 0:-2000 --everything - | awk -F $'\t' '{n_ids = split($11, ids, ";"); for (idx = 1; idx <= n_ids; idx++) {print $1"\t"$2"\t"$3"\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9"\t"$10"\t"ids[idx];} }'> DE_list.intergenic.rev.2000bp.bed
+      bedops --range -0:2000 --everything Araport11_GFF3_genes_transposons.201606.genes.rev.bed | bedmap --echo --skip-unmapped --echo-map-id --delim '\t' --fraction-map 1 - DE_list.intergenic.bed | bedops --range 0:-2000 --everything - | awk -F $'\t' '{n_ids = split($11, ids, ";"); for (idx = 1; idx <= n_ids; idx++) {print $1"\t"$2"\t"$3"\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9"\t"$10"\t"ids[idx];} }' | sort-bed - |  uniq > DE_list.intergenic.rev.2000bp.bed
       
 - Concatenate results
 
