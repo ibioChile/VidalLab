@@ -1,0 +1,254 @@
+# Pipeline to processing ATAC-seq libraries and TFs binding predictions using FIMO
+This pipeline explains how to determine the interaction networks between transcription factors and target genes bsed on Open Chromatin Sites (OCS).
+Firstly, we will obtain OCS using an ATAC-seq raw libraries, then with the resulting bed files, we will obtain fasta files of OCS and then perfom MEME suite FIMO to determine TFs regulatory sites.
+
+Input data comes from the research of Wang, et al. 2020 “Chromatin Accessibility Dynamics and a Hierarchical Transcriptional Regulatory Network Structure for Plant Somatic Embryogenesis”.
+This pipeline was built for teaching purposes; therefore, we will compare two libraries of contrasting conditions. Both libraries come from A. thaliana one in Mature embryo stage (EM) at 0hours and the second is a 3-day seedling (G3) after a somatic embryogenesis treatment. 
+
+#A. Command Line enviroment (BASH) 
+1. Create work folders
+
+```
+mkdir Raw-datasets
+mkdir Trimmed
+mkdir Calculations
+mkdir BEDs-procesing
+mkdir FIMOs
+mkdir Interactions)
+```
+
+2. Download datasets
+
+```
+cd Raw-datasets
+cut -f 1 DownloadInfo.txt | xargs -I {} echo ftp://download.big.ac.cn/gsa3/CRA002609/{}/{}_f1.fq.gz | xargs -n 1 wget
+cut -f 1 DownloadInfo.txt | xargs -I {} echo ftp://download.big.ac.cn/gsa3/CRA002609/{}/{}_r2.fq.gz | xargs -n 1 wget
+cut -f 1 DownloadInfo.txt | xargs -I {} echo ftp://download.big.ac.cn/gsa3/CRR134582/{}/{}_f1.fq.gz | xargs -n 1 wget
+cut -f 1 DownloadInfo.txt | xargs -I {} echo ftp://download.big.ac.cn/gsa3/CRR134582/{}/{}_r2.fq.gz | xargs -n 1 wget
+
+#rename files
+cat DownloadInfo.txt | sed 's/\t/_f1.fq.gz /' | sed 's/_ATAC/_1.fq.gz/'| xargs -n2 mv
+cat DownloadInfo.txt | sed 's/\t/_r2.fq.gz /' | sed 's/_ATAC/_2.fq.gz/' | xargs -n2 mv
+##Revision de Reads
+fastqc *.fq.gz -t 2
+multiqc ./
+```
+
+3. Reads quality verification an trimming
+
+```
+fastqc *.fq.gz -t 2
+multiqc ./
+```
+
+```
+#Trimming
+java -jar trimmomatic-0.39.jar PE WT-E5-0h-R1_1.fq.gz WT-E5-0h-R1_2.fq.gz WT-E5-0h-R1-1p.fq.gz WT-E5-0h-R1-1unpaired.fq.gz WT-E5-0h-R1-2p.fq.gz WT-E5-0h-R1-2unpaired.fq.gz ILLUMINACLIP:./adapters/NexteraPE-PE.fa:5:5:10 SLIDINGWINDOW:4:15 HEADCROP:13
+java -jar trimmomatic-0.39.jar PE WT-G3-R1_1.fq.gz WT-G3-R1_2.fq.gz WT-G3-R1-1p.fq.gz WT-G3-R1-1unpaired.fq.gz WT-G3-R1-2p.fq.gz WT-G3-R1-2unpaired.fq.gz ILLUMINACLIP:./adapters/NexteraPE-PE.fa:5:5:10 SLIDINGWINDOW:4:15 HEADCROP:13
+rm *unpaired*
+mv *1p.fq.gz ../Trimmed/
+mv *2p.fq.gz ../Trimmed/
+```
+```
+#Evaluate Trimmed
+cd ../Trimmed
+fastqc *.fq.gz -t 2
+multiqc ./
+cp *p.fq.gz ../Calculations
+```
+
+4. Mapping of reads to genome, for this is required the last genome version of A. thaliana (TAIR10)
+
+```
+cd ../Calculations
+bowtie2-build -f T10.fa T10.bowtie
+```
+5. Alingment, sorting and Duplicate elimination
+
+```
+#First sample
+#Alinment+Sorting
+bowtie2 -p 4 -x T10.bowtie -1 WT-E5-0h-R1-1p.fq.gz -2 WT-E5-0h-R1-2p.fq.gz 2> 0h_sample.log | samtools sort -@ 20 -O bam -o oh2.sorted.bam
+samtools index oh2.sorted.bam
+
+#Mark Duplicates
+sambamba markdup -t 5 oh2.sorted.bam 0h2.sorted.markdup.bam > sambamba_log.log
+
+#Filtering
+samtools view -bF 1804 -q 20 0h2.sorted.markdup.bam -o 0h2.flt.bam
+samtools index 0h2.flt.bam
+
+#Remove organelar reads
+bedtools intersect -abam 0h2.flt.bam -b filter.bed -v > 0h2.rm_organelle.bam
+samtools index 0h2.rm_organelle.bam
+
+#Create a Tag directory of possible peaks
+makeTagDirectory 0h 0h2.flt.bam
+sed -i '/genome/d' ./0h/tagInfo.txt.txt
+```
+6. Peak calling
+
+```
+macs2 callpeak -t 0h2.rm_organelle.bam -f BAMPE -n oh2 2> callpeak.log
+cp *.narrowPeak ../BEDs-procesing
+```
+7. Repating steps for other libraries
+
+```
+cd ../Calculations
+bowtie2 -p 4 -x T10.bowtie -1 WT-G3-R1-1p.fq.gz -2 WT-G3-R1-2p.fq.gz 2> G3_sample.log | samtools sort -@ 20 -O bam -o g3.sorted.bamsamtools index g3.sorted.bam
+sambamba markdup -t 5 g3.sorted.bam g3.sorted.markdup.bam > sambambag3_log.log
+samtools view -bF 1804 -q 20 g3.sorted.markdup.bam -o g3.flt.bam
+samtools index g3.flt.bam
+makeTagDirectory G3 g3.flt.bam
+sed -i '/genome/d' ./G3/tagInfo.txt.txt
+bedtools intersect -abam g3.flt.bam -b filter.bed -v > g3.rm_organelle.bam
+samtools index g3.rm_organelle.bam
+macs2 callpeak -t g3.rm_organelle.bam -f BAMPE -n g3 2> callpeakg3.log
+cp *.narrowPeak ../BEDs-procesing
+```
+```
+#Obtain nice visualizations with Multiqc
+multiqc ./
+```
+8. Obtain Bed files and trasform to .fasta of OCS
+
+```
+#.bed files
+cd ../BEDs-procesing
+for m in *.narrowPeak; do base=${m##*/}; cat ${base%}| cut -f1-3 > ${base%_*.*}.bed; done
+
+#obtain fasta
+for f in *.bed; do base=${f##*/}; bedtools getfasta -fi T10.fa -bed ${base%} > ${base%.*}.fasta; done
+
+#Obtain peak sizes
+for g in *.fasta; do base=${g##*/}; cat ${base%}| grep -v '>' | awk '{ print length }' > ${base%.*}-lengths.txt; done.
+for f in 0h-lengths.txt g3-lengths.txt; do sed -i "s/$/\t$f/" $f; done
+
+#Merge to plot
+cat *-lengths.txt | cut -d '-' -f1 >>Peaksizes.txt
+```
+#B. R programming language
+9. Plot peak sizes 
+
+```
+# Libraries calling
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+
+# Density plot
+
+d<- read.table("Tamanos.txt", header = T, sep = '\t')
+p2<-ggplot(data=d, aes(x=Size, group=Sample, fill= Sample)) +
+geom_density(position = "identity", alpha = 0.6) +
+scale_x_continuous(breaks= seq(0, 2800, 200), limits = c(0, 2800))+ theme_bw()
+p2
+```
+
+![soft-thresholding powers_parameters](https://user-images.githubusercontent.com/53570955/65054812-91e1ab00-d944-11e9-8b6a-df0e036f6ca8.jpg)
+
+#C. Command Line enviroment (BASH) 
+10. Analysis of TF binding sites 
+
+
+```
+#Download PWMs from CisBP
+#Transform PWMs into .meme format
+ls M*.txt | xargs -n1 -P 2 bash script.pwm2meme.sh
+```
+
+11. Run in SLURM the following FIMO script, requiring to upload all the OCS fasta and the PWMs .meme matrices.
+
+```
+#SBATCH --job-name=FIMo-ATAC
+#SBATCH --partition=slim
+#SBATCH --ntasks-per-core=1
+#SBATCH --ntasks=2
+#SBATCH --output=ATAC.out
+#SBATCH --error=ATAC.err
+#SBATCH --mail-user=bio.jodafer@gmail.com
+#SBATCH --mail-type=FAIL,END
+module load mpi/openmpi3-x86_64
+module load perl/5.32.0
+module load meme/5.1.1
+ls PWMs/*.meme |xargs -n1 bash script.Fimo1.sh
+ls PWMs/*.meme |xargs -n1 bash script.Fimo2.sh
+```
+
+12. The script.Fimo*.sh contain
+
+```
+#!/bin/bash
+fimo --text --parse-genomic-coord $1 g3.fasta | gzip > $1_G3.FIMO.gz 
+```
+Dependingn of the number of PWMs the analysis should last for 6-10 hours runing in the SlURM enviroment.
+
+13. Download and annotate FIMO results
+
+```
+cd ../FIMOs
+mkdir G3-fimo
+mkdir 0h-fimo
+#Download...
+mv *_G3.* ./G3-fimo
+mv *_0h.* ./0h-fimo 
+```
+
+14. Download A. thaliana GFF of TAIR10 and use it to annotate genes were FIMO found a TF motif binding site.
+
+```
+convert2bed -i gff < TAIR10_GFF3_genes.gff | awk '$8 == "gene"'> Genes-4gff.bed
+#Aply to each folder results
+cd *-fimo.
+#Modify and select FIMO data as a bed
+for m in *.FIMO; do base=${m##*/}; cat ${base%}| cut -f3-5| tail -n +2 > ${base%_*.*.*.*_*}.bed; done
+
+#Asing to genes
+for i in *.bed; do base=${i##*/}; sortBed -i ${base%} > ${base%.*}-sorted.bed; done
+
+##Keep genes annotated near 2000bp to the TSS
+for i in *sorted.bed; do base=${i##*/}; closestBed -a ${base%} -b ../Genes-4gff.bed -d | cut -f7,14| awk '{ if ($2<=2000) { print }}' > ${base%-*.*}-done.txt; done
+mkdir Assign
+mv *-done.txt ./Assign
+```
+ 
+15. Asing TFs IDs to motifs genenames.
+
+```
+cd Assign
+for i in *-done.txt; do base=${i##*/}; awk '{print FILENAME (NF?"\t":"") $0}' ${base%} | tr '-' '\t' | cut -f1,3| sort| uniq > ${base%-*.*}-motivo.txt; done
+
+#Paste Motif+GeneName.txt CisBp file of PWMs correspondance to TFs.
+cat TF_Information.txt | cut -f4,6| tr '_' '\t'| cut -f1,3 > Motifs+Genename.txt
+```
+
+#D. R programming language
+16. Combine each TF list with all possible Targets in OCS
+
+```
+library(dplyr)
+
+File.lis<- list.files(pattern='-motivo.txt')
+b <- read.table("Motifs+Genename.txt", header = F, sep = '\t')
+for (file in File.lis){
+a <- read.table(file, header = F, sep = '\t')
+Merge <- merge(a, b, by='V1')
+listo<- cbind(Merge$V2.y, Merge$V2.x)
+write.table(listo, paste(file,"-salida.txt", sep= ''), quote = F, row.names = F, col.names = F )
+}
+```
+
+17. Merge Results and obtain differences between samples
+
+```
+cat *-salida.txt >> Tfs-blancos-muestra0h.txt
+cat *-salida.txt >> Tfs-blancos-muestraG3.txt
+cp Tfs*.txt ../../../Interactions/
+```
+```
+diff Tfs-blancos-muestra0h.txt Tfs-blancos-muestraG3.txt| grep '<'| tr -d ' <' |sed '1 i\TF\tTARGET'> Only-0h.txt
+diff Tfs-blancos-muestra0h.txt Tfs-blancos-muestraG3.txt| grep '>'| tr -d ' >' |sed '1 i\TF\tTARGET'> Only-G3.txt
+```
+
+18. Use Network files to build a cytoscape network and perform G.O. analysis
