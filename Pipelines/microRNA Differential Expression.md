@@ -1,5 +1,6 @@
 # microRNA Differential Expression
 
+
 This pipeline explains how to find differentially expressed microRNAs among different conditions, including the processing of small RNA libraries. In this case, we will analyze an experiment where samples from *Arabidopsis thaliana* were collected at 6 different days (3 replicates each day). 
 
 1. Remove adapters from microRNA libraries using cutadapt. Reads with length <18 bp and >28 bp are discarded. 
@@ -48,6 +49,7 @@ sizeFactors(dds)
 normalized_counts <- counts(dds, normalized=TRUE)
 normalized_counts_log <- log2(normalized_counts + 1)
 ```
+
 
 - To check that this type of normalization actually changed the variance of your data, we can plot the relative log distribution (rle), before and after normalization.
 
