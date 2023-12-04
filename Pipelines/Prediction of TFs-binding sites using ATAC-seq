@@ -1,4 +1,5 @@
 # Pipeline to processing ATAC-seq libraries and TFs binding predictions using FIMO
+
 This pipeline explains how to determine the interaction networks between transcription factors and target genes bsed on Open Chromatin Sites (OCS).
 Firstly, we will obtain OCS using an ATAC-seq raw libraries, then with the resulting bed files, we will obtain fasta files of OCS and then perfom MEME suite FIMO to determine TFs regulatory sites.
 
