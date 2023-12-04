@@ -1,10 +1,10 @@
-# Welcome to VidalsLab (Plantomics Lab) GitHub Page
+# Welcome to Plantomics Lab GitHub Page
 
 ![Elena's Lab Logo](https://plantomicslab.files.wordpress.com/2018/09/plantomics_vrt_color_bajada.png?w=1086&h=545)
 
 ## About Us
 
-Welcome to Elena's Lab, a cutting-edge research group at the Center for Genomics and Bioinformatics, Universidad Mayor. We are proud members of the Millennium Institute for Integrative Biology (iBio), dedicated to unraveling the mysteries of plant adaptation and responses to the environment. Our work revolves around harnessing genomics and systems biology approaches to gain deeper insights into the intricate world of plants.
+Welcome to Plantomics Lab, a cutting-edge research group at the Center for Genomics and Bioinformatics, Universidad Mayor. We are proud members of the Millennium Institute for Integrative Biology (iBio), dedicated to unraveling the mysteries of plant adaptation and responses to the environment. Our work revolves around harnessing genomics and systems biology approaches to gain deeper insights into the intricate world of plants.
 
 ### Mission Statement
 
