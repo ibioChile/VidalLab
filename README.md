@@ -8,7 +8,7 @@ Welcome to Elena's Lab, a cutting-edge research group at the Center for Genomics
 
 ### Mission Statement
 
-At ElantomicsLab, our mission is to decode the complex gene networks that govern plant development and responses to environmental stimuli. Employing an integrative approach, we merge the analysis of omics data, the modeling of gene networks, and experimental validation using molecular biology tools. Our primary focus includes the model plant Arabidopsis thaliana and other plants of agronomic interest, such as Solanum lycopersicum.
+At PlantomicsLab, our mission is to decode the complex gene networks that govern plant development and responses to environmental stimuli. Employing an integrative approach, we merge the analysis of omics data, the modeling of gene networks, and experimental validation using molecular biology tools. Our primary focus includes the model plant Arabidopsis thaliana and other plants of agronomic interest, such as Solanum lycopersicum.
 
 ## Explore Our Bioinformatic Pipelines
 
