@@ -1,5 +1,6 @@
 # siRNA Identification & Differential expression
 
+
 This pipeline explains how to identify clusters of siRNA and identify differentially expressed clusters among different conditions. In this case, we will analyze an experiment where samples from *Arabidopsis thaliana* were collected at 6 different days (3 replicates each day). 
 
 1. Create environment and install programs required for this pipeline.
@@ -53,6 +54,7 @@ This pipeline explains how to identify clusters of siRNA and identify differenti
 8. Merge locus with 2nt of difference:
 
 ``` mergeBed -d 2 -i intersect_shortstack_DC_2out3lib.bed > output_merged_intervals_file.bed```
+
 
 9. ShortStack-count mode under default settings was then used to find relative small RNA abundances on this reference list of each library.
 
