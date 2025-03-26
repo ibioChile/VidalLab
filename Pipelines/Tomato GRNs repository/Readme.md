@@ -4,7 +4,7 @@ This repository contains the full set of scripts and resources used to generate 
 
 Here, you will find:
 
-🧬 Pipelines for RNA-seq, ATAC-seq, DNase-seq, ChIP-seq, and DAP-seq data processing
+🧬 Pipelines for RNA-seq, ATAC-seq, ChIP-seq, and DAP-seq data processing
 
 🔄 The complete GENIE3-based GRN inference pipeline
 
