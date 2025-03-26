@@ -29,11 +29,13 @@ This repository provides a modular and reproducible pipeline to process ChIP-seq
 
 ## Output Structure
 
-1-SAM/ → Bowtie2 SAM files
-2-SORT/ → Sorted and converted BAM files
-3-Dedup/ → Deduplicated BAMs and metrics
-4-Filtered/ → BAMs filtered by MAPQ ≥ 10
-5-macs/ → MACS2 peak output (.narrowPeak)
+## 📁 Output Structure
+
+- `1-SAM/` → Bowtie2 SAM files
+- `2-SORT/` → Sorted and converted BAM files
+- `3-Dedup/` → Deduplicated BAMs and metrics
+- `4-Filtered/` → BAMs filtered by MAPQ ≥ 10
+- `5-macs/` → MACS2 peak output (.narrowPeak)
 
 ---
 
