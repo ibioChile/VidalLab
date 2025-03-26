@@ -17,10 +17,12 @@ This repository provides a modular and reproducible pipeline to process ATAC-seq
 
 ##  Requirements
 
+
 - Python 3+
 - [Bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/)
 - [Samtools](http://www.htslib.org/)
 - [Picard](https://broadinstitute.github.io/picard/)
+- [Sambamba](https://github.com/biod/sambamba)
 - [MACS2](https://github.com/macs3-project/MACS)
 - SLURM-compatible job scheduler
 
