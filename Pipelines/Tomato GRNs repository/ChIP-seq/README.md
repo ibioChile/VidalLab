@@ -22,20 +22,22 @@ This repository provides a modular and reproducible pipeline to process ChIP-seq
 - MACS2
 - SLURM-compatible scheduler
 ---
-🧾 Output Structure
-csharp
-Copiar
-Editar
+
+---
+Output Structure
 1-SAM/         → Bowtie2 SAM files
 2-SORT/        → Sorted and converted BAM files
 3-Dedup/       → Deduplicated BAMs and metrics
 4-Filtered/    → BAMs filtered by MAPQ ≥ 10
 5-macs/        → MACS2 peak output (.narrowPeak)
 ---
+
+---
 Notes
 Modify paths to Picard and Java modules based on your cluster.
 The pipeline assumes paired reads are named with _R1 and _R2 or follow a consistent prefix convention.
 Consider adding job dependencies for sequential control if needed
+---
 ---
 #!/bin/bash
 
