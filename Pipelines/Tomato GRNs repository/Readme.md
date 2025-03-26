@@ -1,5 +1,6 @@
-🍅 Welcome to the Tomato GRNs Pipelines Repository
-Welcome! This repository contains the full set of scripts and resources used to generate and analyze gene regulatory networks (GRNs) in tomato (Solanum lycopersicum), as described in our publication.
+🍅 Welcome to the Tomato GRNs Pipelines Repository.
+
+This repository contains the full set of scripts and resources used to generate and analyze gene regulatory networks (GRNs) in tomato (Solanum lycopersicum), as described in our publication.
 
 Here, you will find:
 
