@@ -1,15 +1,42 @@
-🍅 Welcome to the Tomato GRNs Pipelines Repository.
+# 🍅 Tomato GRNs Pipelines Repository
 
-This repository contains the full set of scripts and resources used to generate and analyze gene regulatory networks (GRNs) in tomato (Solanum lycopersicum), as described in our publication.
+**Citation:**  
+*Organ-level Gene Regulatory Network models enable the identification of central transcription factors in* *Solanum lycopersicum* (2025-04-01)  
+doi: [https://doi.org/10.1101/2025.03.26.645553](https://doi.org/10.1101/2025.03.26.645553)
 
-Here, you will find:
+---
 
-🧬 Pipelines for RNA-seq, ATAC-seq, ChIP-seq, and DAP-seq data processing
+Welcome to the **Tomato Gene Regulatory Networks (GRNs) Pipelines Repository**.  
+This repository hosts a comprehensive collection of scripts and resources developed for the construction and analysis of **organ-specific GRNs in tomato (*Solanum lycopersicum*)**, as presented in the study referenced above.
 
-🔄 The complete GENIE3-based GRN inference pipeline
+### 🧰 What’s Included
 
-🌐 The final GRNs generated from our analyses
+This repository provides:
 
-All pipelines are organized for clarity and reproducibility, and can be adapted to other datasets with minor modifications.
+🧬 **Preprocessing pipelines** for multi-omic data types:
+  - RNA-seq
+  - ATAC-seq
+  - ChIP-seq
+  - DAP-seq
 
-Feel free to explore, reuse, or contribute. If you use this work, please cite the corresponding article.
+🔄 A modular pipeline to infer GRNs using the **GENIE3** algorithm, integrating:
+  - Expression data
+  - Chromatin accessibility data
+  - Promoter motif analysis
+  - Co-expression evidence
+
+🌐 The **final organ-level GRN models** generated from these analyses
+
+Each component of this repository is designed to ensure **reproducibility**, **modularity**, and ease of use across diverse experimental setups and datasets.
+
+---
+
+### 📚 Usage & Contribution
+
+We invite researchers to explore and adapt these pipelines for their own analyses.  
+If you find this resource helpful, please **cite the associated publication** and feel free to open issues or pull requests for improvements and collaborations.
+
+---
+
+Thank you for your interest in our work on tomato transcriptional regulation.  
+We hope this resource supports and accelerates your plant genomics research!
