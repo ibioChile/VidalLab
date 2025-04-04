@@ -74,6 +74,9 @@ python3 2-filtering-sorting-deduplicating.py
 echo "STEP 3: Removing  duplicates and filtering
 bash 3-MACSpeaks.sh
 sbatch 3.1-SendPcalling.sh
+```
+
+---
 
 ## Author
 
