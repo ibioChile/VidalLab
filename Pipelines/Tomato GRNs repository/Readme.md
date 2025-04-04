@@ -1,4 +1,7 @@
-# 🍅 Tomato GRNs Pipelines Repository
+<p align="center">
+  <img src="tomato-grn-banner.png" alt="Tomato GRNs Pipelines Repository Banner" style="max-width:100%;">
+</p>
+
 
 **Citation:**  
 *Organ-level Gene Regulatory Network models enable the identification of central transcription factors in* *Solanum lycopersicum* (2025-04-01)  
