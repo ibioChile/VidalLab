@@ -1,0 +1,40 @@
+🍅 Downloadable Organ-level GRNs for Solanum lycopersicum
+Welcome to the Tomato Organ-level Gene Regulatory Networks (GRNs) resource!
+This folder provides ready-to-use, community-accessible GRNs for Solanum lycopersicum (tomato), generated from high-quality transcriptomic and epigenomic datasets.
+
+📂 Available Files
+You’ll find one GRN file per organ:
+
+Seed_GRN.txt
+
+Root_GRN.txt
+
+Leaf_GRN.txt
+
+Flower_GRN.txt
+
+Fruit_GRN.txt
+
+Each file is a tab-separated .txt file with the following structure:
+
+Column	Description
+1. TF	Transcription Factor
+2. Target	Target Gene
+3. Evidence	Supporting regulatory evidence: may include one or more of the following → GENIE3, Coex, OCS, Promo
+⚠️ All edges originate from GENIE3 predictions and are optionally supported by co-expression (Coex), open chromatin signals (OCS), and/or promoter motif presence (Promo).
+
+🧪 How to Use
+These files can be easily integrated into your own analyses or visualized using popular tools such as:
+
+Cytoscape – for interactive network exploration
+
+R / Python – for programmatic filtering, analysis, or graph-based modeling
+
+Excel / LibreOffice – for simple inspection or filtering
+
+📚 Citation
+If you use these GRNs in your work, please cite our article (add reference when available) and/or link back to this repository:
+Organ-level Gene Regulatory Network models enable the identification of central transcription factors in Solanum lycopersicum (2025-04-01)
+doi: https://doi.org/10.1101/2025.03.26.645553
+
+https://github.com/ibioChile/VidalLab
