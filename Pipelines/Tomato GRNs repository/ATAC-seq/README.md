@@ -74,13 +74,17 @@ python3 1-mapping.py
 echo "STEP 2: Sorting SAM files and converting to BAM..."
 python3 2-sortSam.py
 
-echo "STEP 3: Removing  duplicates and filtering
+echo "STEP 3: Removing  duplicates and filtering"
 bash 3-filterBAM.py 
 sbatch 3.1-SendFiltering.sh
+```
+
+---
 
 ## Author
 
 This pipeline is a modification of by Reynoso et al., (2019), , maintained by the Vidal Lab.
 part of:
+
 Organ-level Gene Regulatory Network models enable the identification of central transcription factors in Solanum lycopersicum (2025-04-01)
 doi: https://doi.org/10.1101/2025.03.26.645553
