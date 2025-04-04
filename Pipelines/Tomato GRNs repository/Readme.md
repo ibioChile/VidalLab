@@ -22,13 +22,9 @@ This repository provides:
   - ChIP-seq
   - DAP-seq
 
-🔄 A modular pipeline to infer GRNs using the **GENIE3** algorithm, integrating:
-  - Expression data
-  - Chromatin accessibility data
-  - Promoter motif analysis
-  - Co-expression evidence
+🔄 A modular pipeline to infer GRNs using the **GENIE3** algorithm
 
-🌐 The **final organ-level GRN models** generated from these analyses
+🌐 The **final organ-level GRN models** generated from integrating the regulatory evidence from these analyses
 
 Each component of this repository is designed to ensure **reproducibility**, **modularity**, and ease of use across diverse experimental setups and datasets.
 
