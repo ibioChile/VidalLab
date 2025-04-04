@@ -28,6 +28,17 @@ This repository provides a modular and reproducible pipeline to process ATAC-seq
 
 ---
 
+## Input Format
+
+All FASTQ files should be placed inside the `Files/` directory and named like:
+
+```
+Sample1_R1.fq.gz
+Sample1_R2.fq.gz
+Sample2.fq.gz    # single-end
+```
+
+---
 
 ## Output Structure
 
@@ -40,10 +51,11 @@ This repository provides a modular and reproducible pipeline to process ATAC-seq
 
 ##  Notes
 - Before starting, make sure `Sol4.fa` (the reference genome) is in the working directory
-- Modify the paths to Picard and Java modules based on your cluster environment.
-- The pipeline assumes paired reads are named with `_R1` and `_R2` or follow a consistent naming convention.
 - Consider adding SLURM job dependencies (`--dependency=afterok:jobID`) for stricter execution order.
 - Remember to make each .sh script executable (chmod +x script.sh).
+- Modify the paths to Picard and Java modules based on your cluster environment.
+- Adjust genome size in MACS2 for different species.
+
 
 ---
 
@@ -66,8 +78,9 @@ echo "STEP 3: Removing  duplicates and filtering
 bash 3-filterBAM.py 
 sbatch 3.1-SendFiltering.sh
 
-echo "STEP 4: Peak calling using MACS2..."
-bash 4-Peakcalling.sh 
-sbatch 4.1-SendPcalling.sh
+## Author
 
-echo "Pipeline launched. Monitor job queue with 'squeue' or 'sacct'."
+This pipeline is a modification of by Reynoso et al., (2019), , maintained by the Vidal Lab.
+part of:
+Organ-level Gene Regulatory Network models enable the identification of central transcription factors in Solanum lycopersicum (2025-04-01)
+doi: https://doi.org/10.1101/2025.03.26.645553
