@@ -17,7 +17,6 @@ This repository hosts a comprehensive collection of scripts and resources develo
 This repository provides:
 
 🧬 **Preprocessing pipelines** for multi-omic data types:
-  - RNA-seq
   - ATAC-seq
   - ChIP-seq
   - DAP-seq
