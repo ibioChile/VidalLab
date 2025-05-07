@@ -42,8 +42,8 @@ BiocManager::install("GENIE3")
 Place your expression matrix and TF list inside the data/ directory.
 
 data/
-├── tissue1_counts.txt       # Raw counts table: rows = genes, columns = SRA library IDs
-└── CuratedlistofTFs.txt     # Plain-text list of transcription factor gene IDs (one per line)
+ tissue1_counts.txt       # Raw counts table: rows = genes, columns = SRA library IDs
+ CuratedlistofTFs.txt     # Plain-text list of transcription factor gene IDs (one per line)
 
 - The first column in the counts table must contain gene IDs
 - No normalization is required prior to running GENIE3
