@@ -33,6 +33,8 @@ install.packages("influential")
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 BiocManager::install("GENIE3")
+```
+
 ---
 
 ## Input Format
@@ -67,7 +69,7 @@ data/
 
 You can execute the pipeline sequentially with the following script:
 
-bash
+```bash
 #!/bin/bash
 
 # Master pGRN Pipeline
@@ -77,7 +79,7 @@ Rscript scripts/01-run_GENIE3.R
 
 echo "STEP 2: Filtering GENIE3 output to generate final pGRN..."
 Rscript scripts/02-filter_network.R
-
+```
 ---
 
 ## Citation
