@@ -1,4 +1,4 @@
-# Tomato GENIE3 Pipeline for Predictive Gene Regulatory Networks (pGRNs)
+# Tomato GENIE3 Pipeline for organ-level Gene Regulatory Networks
 
 This repository provides a modular and reproducible pipeline to construct gene regulatory networks (GRNs) from bulk RNA-seq count data using the [GENIE3](https://bioconductor.org/packages/GENIE3) algorithm. 
 It is optimized for *Solanum lycopersicum* and designed for execution on HPC systems with SLURM support.
