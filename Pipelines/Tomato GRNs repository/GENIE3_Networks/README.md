@@ -33,8 +33,8 @@ install.packages("influential")
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 BiocManager::install("GENIE3")
-
 ---
+
 ## Input Format
 
 Place your expression matrix and TF list inside the data/ directory.
