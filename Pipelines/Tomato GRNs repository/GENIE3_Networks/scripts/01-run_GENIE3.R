@@ -21,7 +21,7 @@ regulators <- tf_list$V1
 
 # Run GENIE3
 set.seed(123)
-weight_matrix <- GENIE3(expr_matrix, regulators = regulators, nCores = 40, verbose = TRUE)
+weight_matrix <- GENIE3(expr_matrix, regulators = regulators, nTrees = 2000, nCores = 40, verbose = TRUE)
 
 # Get regulatory links
 link_list <- getLinkList(weight_matrix, reportMax = NULL)
