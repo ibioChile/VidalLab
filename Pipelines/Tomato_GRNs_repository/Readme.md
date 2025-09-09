@@ -5,7 +5,8 @@
 
 🍃🍃**Citation:**  
 *Organ-level Gene Regulatory Network models enable the identification of central transcription factors in* *Solanum lycopersicum* (2025-04-01)  
-doi: [https://doi.org/10.1101/2025.03.26.645553](https://doi.org/10.1101/2025.03.26.645553)
+doi: [https://doi.org/10.1016/j.xplc.2025.101499](https://doi.org/10.1016/j.xplc.2025.101499)
+
 📜
 ---
 
